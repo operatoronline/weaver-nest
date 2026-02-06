@@ -1,0 +1,8 @@
+{
+  "name": "@Wise-Agentic-Studio-v9x",
+  "description": "An intelligent multi-agent AI platform with specialized agents for coding, creativity, research, visuals, and real-time voice interaction.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ]
+}

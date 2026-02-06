@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Wise Agentic Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- PrismJS for Syntax Highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-jsx.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-tsx.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script> <!-- HTML -->
+
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+              mono: ['JetBrains Mono', 'Menlo', 'monospace'],
+            },
+            colors: {
+              bg: {
+                main: 'var(--bg-main)',
+                panel: 'var(--bg-panel)',
+                surface: 'var(--bg-surface)',
+              },
+              border: {
+                subtle: 'var(--border-subtle)',
+                active: 'var(--border-active)',
+              },
+              text: {
+                primary: 'var(--text-primary)',
+                secondary: 'var(--text-secondary)',
+                muted: 'var(--text-muted)',
+              },
+              accent: {
+                primary: 'var(--accent-primary)',
+                glow: 'var(--accent-glow)',
+              }
+            },
+            boxShadow: {
+              'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.08)',
+              'glass-hover': '0 8px 32px 0 rgba(0, 0, 0, 0.16)',
+              'node': '0 2px 20px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.04)',
+              'node-hover': '0 20px 40px -10px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.05)',
+              'node-active': '0 25px 50px -12px rgba(0,0,0,0.18), 0 0 0 1px var(--accent-primary)',
+            },
+            animation: {
+                'float': 'float 6s ease-in-out infinite',
+                'scale-in': 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                'slide-down': 'slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                'shimmer': 'shimmer 2.5s linear infinite',
+            },
+            keyframes: {
+                float: {
+                    '0%, 100%': { transform: 'translateY(0)' },
+                    '50%': { transform: 'translateY(-10px)' },
+                },
+                scaleIn: {
+                    'from': { opacity: '0', transform: 'scale(0.9)' },
+                    'to': { opacity: '1', transform: 'scale(1)' },
+                },
+                slideUp: {
+                    'from': { opacity: '0', transform: 'translateY(20px)' },
+                    'to': { opacity: '1', transform: 'translateY(0)' },
+                },
+                slideDown: {
+                    'from': { opacity: '0', transform: 'translateY(-20px)' },
+                    'to': { opacity: '1', transform: 'translateY(0)' },
+                },
+                shimmer: {
+                    '0%': { backgroundPosition: '200% 0' },
+                    '100%': { backgroundPosition: '-200% 0' }
+                }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      :root {
+        --bg-main: #F5F5F7; /* Apple System Gray 6 */
+        --bg-panel: rgba(255, 255, 255, 0.75);
+        --bg-surface: #FFFFFF;
+        --text-primary: #1D1D1F;
+        --text-secondary: #86868B;
+        --text-muted: #A1A1A6;
+        --border-subtle: rgba(0, 0, 0, 0.06);
+        --border-active: rgba(0, 0, 0, 0.15);
+        --accent-primary: #0071E3; /* Classic Apple Blue */
+        --accent-glow: rgba(0, 113, 227, 0.3);
+        --grid-color: rgba(0, 0, 0, 0.04);
+      }
+
+      .dark {
+        --bg-main: #000000;
+        --bg-panel: rgba(28, 28, 30, 0.65);
+        --bg-surface: #1C1C1E;
+        --text-primary: #F5F5F7;
+        --text-secondary: #86868B;
+        --text-muted: #636366;
+        --border-subtle: rgba(255, 255, 255, 0.12);
+        --border-active: rgba(255, 255, 255, 0.2);
+        --accent-primary: #2997FF;
+        --accent-glow: rgba(41, 151, 255, 0.3);
+        --grid-color: rgba(255, 255, 255, 0.08);
+      }
+
+      body {
+        background-color: var(--bg-main);
+        color: var(--text-primary);
+        overflow: hidden;
+        transition: background-color 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        position: relative;
+      }
+
+      /* Premium Glass Effect */
+      .glass-panel {
+        background: var(--bg-panel);
+        backdrop-filter: blur(40px) saturate(180%);
+        -webkit-backdrop-filter: blur(40px) saturate(180%);
+        border: 1px solid var(--border-subtle);
+        box-shadow: var(--shadow-glass);
+      }
+
+      .dot-grid {
+        background-image: radial-gradient(var(--grid-color) 1.5px, transparent 1.5px);
+        background-size: 32px 32px;
+      }
+
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--text-secondary);
+        border-radius: 3px;
+        opacity: 0.2;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--text-primary);
+      }
+
+      /* Custom selection color */
+      ::selection {
+        background: var(--accent-primary);
+        color: white;
+      }
+      
+      /* Prism Overrides */
+      code[class*="language-"],
+      pre[class*="language-"] {
+        text-shadow: none !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        font-size: 13px !important;
+        line-height: 1.5 !important;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="font-sans antialiased h-screen w-screen overflow-hidden text-text-primary bg-bg-main">
+    <div id="root" class="h-full w-full"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
