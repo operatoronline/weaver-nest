@@ -415,7 +415,7 @@ export class GoogleGenAIProvider implements AIProvider {
                      responseSchema: {
                          type: Type.OBJECT,
                          properties: {
-                             targetAgentId: { type: Type.STRING, enum: [AgentId.WISE, AgentId.CODE, AgentId.CREATIVE, AgentId.IMAGE, AgentId.VIDEO, AgentId.PRO] },
+                             targetAgentId: { type: Type.STRING, enum: [AgentId.NEST, AgentId.CODE, AgentId.CREATIVE, AgentId.IMAGE, AgentId.VIDEO, AgentId.PRO] },
                              reasoning: { type: Type.STRING },
                              artifact: {
                                  type: Type.OBJECT,
@@ -457,7 +457,7 @@ export class GoogleGenAIProvider implements AIProvider {
                      console.warn("Router JSON parse failed", e);
                  }
              }
-             return { targetAgentId: AgentId.WISE, reasoning: "Default routing" };
+             return { targetAgentId: AgentId.NEST, reasoning: "Default routing" };
         }, 3, 500, 'Router');
     }
 

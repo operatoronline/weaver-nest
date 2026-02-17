@@ -12,7 +12,6 @@ interface ControlPanelProps {
   onToggleChat: () => void;
   onSave: () => void;
   onLoad: () => void;
-  onUpdateCloudToken?: (token: string) => void;
   canUndo: boolean;
   canRedo: boolean;
   onUndo: () => void;
@@ -30,17 +29,12 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   onToggleChat,
   onSave,
   onLoad,
-  onUpdateCloudToken,
   canUndo,
   canRedo,
   onUndo,
   onRedo
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
-  const [cloudToken, setCloudToken] = useState('');
-  const [showToken, setShowToken] = useState(false);
-  const [isCloudExpanded, setIsCloudExpanded] = useState(false);
-
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
@@ -50,25 +44,11 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      const stored = localStorage.getItem('CLOUD_STORAGE_TOKEN');
-      if (stored) {
-          setCloudToken(stored);
-          setIsCloudExpanded(false); // Collapsed by default if token exists
-      } else {
-          setIsCloudExpanded(true); // Expanded if no token
-      }
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen, onClose]);
-
-  const handleSaveToken = () => {
-      if (onUpdateCloudToken) {
-          onUpdateCloudToken(cloudToken);
-      }
-      setIsCloudExpanded(false);
-  };
 
   if (!isOpen) return null;
 
@@ -160,57 +140,15 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                     />
                     <Divider />
                     
-                    {/* Cloud Storage Row */}
-                    <div className="flex flex-col">
-                        <button 
-                            onClick={() => setIsCloudExpanded(!isCloudExpanded)} 
-                            className="flex items-center justify-between px-3 py-2.5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-left w-full group"
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className={`w-6 h-6 rounded flex items-center justify-center transition-colors ${cloudToken ? 'bg-emerald-500/10 text-emerald-500' : 'bg-text-secondary/10 text-text-secondary'}`}>
-                                    <i className="fa-solid fa-cloud text-xs"></i>
-                                </div>
-                                <span className="text-xs font-medium text-text-primary">Cloud Storage</span>
+                    {/* Cloud Storage Row — auto-managed via SDK */}
+                    <div className="flex items-center justify-between px-3 py-2.5">
+                        <div className="flex items-center gap-3">
+                            <div className="w-6 h-6 rounded flex items-center justify-center bg-emerald-500/10 text-emerald-500">
+                                <i className="fa-solid fa-cloud text-xs"></i>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <span className={`text-[10px] font-medium ${cloudToken ? 'text-emerald-500' : 'text-text-muted'}`}>
-                                    {cloudToken ? 'Active' : 'Setup'}
-                                </span>
-                                <i className={`fa-solid fa-chevron-right text-[10px] text-text-muted transition-transform duration-200 ${isCloudExpanded ? 'rotate-90' : ''}`}></i>
-                            </div>
-                        </button>
-                        
-                        {isCloudExpanded && (
-                            <div className="px-3 pb-3 pt-1 bg-black/5 dark:bg-white/5 border-t border-border-subtle/50 animate-slide-down">
-                                <div className="text-[10px] text-text-secondary mb-2 leading-relaxed">
-                                    Connect compatible storage to sync your assets.
-                                </div>
-                                <div className="flex gap-2 mb-2">
-                                    <div className="flex-1 bg-bg-surface border border-border-subtle rounded-lg flex items-center px-2 focus-within:border-accent-primary transition-colors">
-                                        <i className="fa-solid fa-key text-[10px] text-text-muted mr-2"></i>
-                                        <input 
-                                            type={showToken ? "text" : "password"}
-                                            value={cloudToken}
-                                            onChange={e => setCloudToken(e.target.value)}
-                                            placeholder="Access Token"
-                                            className="w-full bg-transparent border-none outline-none text-xs text-text-primary py-1.5 font-mono placeholder:text-text-muted"
-                                        />
-                                    </div>
-                                    <button 
-                                        onClick={() => setShowToken(!showToken)} 
-                                        className="w-8 h-full rounded-lg bg-bg-surface border border-border-subtle flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors"
-                                    >
-                                        <i className={`fa-solid ${showToken ? 'fa-eye-slash' : 'fa-eye'} text-xs`}></i>
-                                    </button>
-                                </div>
-                                <button 
-                                    onClick={handleSaveToken} 
-                                    className="w-full py-1.5 bg-text-primary text-bg-main rounded-lg text-xs font-bold hover:opacity-90 transition-opacity shadow-sm"
-                                >
-                                    {cloudToken ? 'Update Connection' : 'Connect'}
-                                </button>
-                            </div>
-                        )}
+                            <span className="text-xs font-medium text-text-primary">Cloud Storage</span>
+                        </div>
+                        <span className="text-[10px] font-medium text-emerald-500">Auto</span>
                     </div>
                 </div>
             </div>
@@ -219,7 +157,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
         
         {/* Footer */}
         <div className="px-4 py-2 bg-bg-surface/30 border-t border-border-subtle/50 flex items-center justify-between text-[10px] text-text-muted">
-            <span>Wise Studio</span>
+            <span>Nest Studio</span>
             <span className="font-mono opacity-50">v0.9.2</span>
         </div>
     </div>

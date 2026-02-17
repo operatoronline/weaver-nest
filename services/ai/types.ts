@@ -29,6 +29,7 @@ export interface GenerationResult {
     text: string;
     files?: { name: string; content: string; language: string }[];
     toolCalls?: any[];
+    uiCommands?: { command: string; args: any }[];
 }
 
 export interface RouterResult {
@@ -56,4 +57,5 @@ export interface AIProvider {
     generateImage(prompt: string, options?: ImageOptions): Promise<string>;
     generateVideo(prompt: string, options?: VideoOptions, imageInputBase64?: string): Promise<string>;
     routeRequest(prompt: string, history: any[], models: { fast: string }, imageContext?: string): Promise<RouterResult>;
+    getLastUICommands?(): { command: string; args: any }[];
 }

@@ -73,7 +73,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ messages, isOpen, onToggle, o
                                 <i className="fa-solid fa-sparkles text-2xl text-text-secondary"></i>
                              </div>
                              <p className="text-sm font-medium text-text-primary">Ready to create.</p>
-                             <p className="text-xs text-text-secondary mt-1">Ask Wise to help you build.</p>
+                             <p className="text-xs text-text-secondary mt-1">Ask Nest to help you build.</p>
                         </div>
                     )}
                     {messages.map((msg) => (

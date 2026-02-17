@@ -1,20 +1,25 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Nest
 
-# Run and deploy your AI Studio app
+Managed Agentic Studio for the Weaver ecosystem.
 
-This contains everything you need to run your app locally.
+## Overview
 
-View your app in AI Studio: https://ai.studio/apps/drive/1y6c427rqgt107RQjsAItGrIMcwVCkcvJ
+Nest is the visual control plane for Weaver. It provides a collaborative, studio-grade interface for orchestrating high-density agents across managed infrastructure.
 
-## Run Locally
+- **Weaver Integration:** Connects directly to Weaver agent workspaces.
+- **Hergé Aesthetic:** Ligne Claire design language for technical clarity.
+- **Surface Orchestration:** Visual workspace for managing agentic threads.
+- **Canvas Mutations:** Real-time UI control bridge allowing Weaver agents to create and modify canvas nodes programmatically.
 
-**Prerequisites:**  Node.js
+## Architecture
 
+Nest uses the `WeaverProvider` to communicate with the `weaver.onl` REST API. It supports standard chat, code generation, and direct UI commands (e.g., `create_node`) dispatched by the agent.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Development
+
+1.  `npm install`
+2.  `npm run dev`
+
+## Deployment
+
+Pushes to `nest.operator.onl` (Dev) and `nest.onl` (Prod).

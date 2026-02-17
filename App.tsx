@@ -8,17 +8,20 @@ import ChatOverlay from './components/ChatOverlay';
 import StatusIsland from './components/StatusIsland';
 import ControlPanel from './components/ControlPanel';
 import WorkspacePanel from './components/WorkspacePanel';
+import LoginScreen from './components/LoginScreen';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AI } from './services/ai';
 import { ImageOptions, VideoOptions } from './services/ai/types';
-import { cloudService } from './services/cloudService';
+import { useAuth } from '@operator/identify/react';
+import { ensureFolderPath, uploadToStorage, listProjects, createProject, updateProject, deleteProject } from '@operator/identify';
 
-function App() {
+function AppContent() {
+  const { user, isGuest, isLoading: isAuthLoading } = useAuth();
   // --- Workspace State (Persistence) ---
   const [workspaces, setWorkspaces] = useState<Workspace[]>(() => {
       // 1. Try to load from LocalStorage
       try {
-          const saved = localStorage.getItem('WISE_STUDIO_WORKSPACES');
+          const saved = localStorage.getItem('NEST_STUDIO_WORKSPACES');
           if (saved) {
               const parsed = JSON.parse(saved);
               if (Array.isArray(parsed) && parsed.length > 0) {
@@ -56,7 +59,7 @@ function App() {
 
 This is your **Infinite Canvas** for intelligent collaboration.
 
-**Try asking Wise for:**
+**Try asking Nest for:**
 
 - [ ] "Tic tac toe game in the style of Hérge"
 - [ ] "An image of a futuristic city on mars"
@@ -83,7 +86,7 @@ _
   });
 
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(() => {
-      const savedId = localStorage.getItem('WISE_STUDIO_ACTIVE_ID');
+      const savedId = localStorage.getItem('NEST_STUDIO_ACTIVE_ID');
       return savedId || 'default';
   });
 
@@ -91,15 +94,13 @@ _
   const [isSwitchingWorkspace, setIsSwitchingWorkspace] = useState(false);
 
   // --- Cloud State ---
-  const [cloudRootId, setCloudRootId] = useState<number | null>(null);
   const [isCloudSyncing, setIsCloudSyncing] = useState(false);
-  const [cloudRefreshTrigger, setCloudRefreshTrigger] = useState(0);
 
   // --- Canvas State (Active Workspace) ---
   // Ensure we find the active workspace safely
   const activeWorkspace = workspaces.find(w => w.id === activeWorkspaceId) || workspaces[0];
   
-  const [activeAgent, setActiveAgent] = useState<AgentId>(AgentId.WISE);
+  const [activeAgent, setActiveAgent] = useState<AgentId>(AgentId.NEST);
   const [nodes, setNodes] = useState<CanvasNode[]>(activeWorkspace.nodes);
   const [edges, setEdges] = useState<CanvasEdge[]>(activeWorkspace.edges);
   const [messages, setMessages] = useState<Message[]>(activeWorkspace.messages || []); 
@@ -190,58 +191,41 @@ _
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [history, historyIndex]);
 
-  // --- Cloud Initialization ---
+  // --- Load workspaces from Identify API ---
   useEffect(() => {
-      const initCloud = async () => {
-          if (!cloudService.isConfigured) {
-              setCloudRootId(null);
-              return;
-          }
+      if (!user) return;
+      const loadFromAPI = async () => {
           try {
-              const rootId = await cloudService.ensureDirectory(['Wise Agentic Studio']);
-              if (rootId) {
-                  setCloudRootId(rootId);
-                  console.log("Cloud Root Initialized:", rootId);
-                  setStatusMessage("Cloud Connected");
-                  setTimeout(() => setStatusMessage(""), 2000);
+              const res = await listProjects();
+              const projects = res.projects || res.data || res;
+              if (Array.isArray(projects) && projects.length > 0) {
+                  const mapped: Workspace[] = projects.map((p: any) => ({
+                      id: String(p.id),
+                      name: p.name,
+                      nodes: p.settings?.nodes || [],
+                      edges: p.settings?.edges || [],
+                      messages: p.settings?.messages || [],
+                      lastModified: new Date(p.updatedAt || p.createdAt).getTime(),
+                      cloudId: p.id,
+                  }));
+                  setWorkspaces(mapped);
+                  // Switch to first if current not found
+                  if (!mapped.find(w => w.id === activeWorkspaceId)) {
+                      const first = mapped[0];
+                      setNodes(first.nodes);
+                      setEdges(first.edges);
+                      setMessages(first.messages || []);
+                      setActiveWorkspaceId(first.id);
+                      setHistory([{ nodes: first.nodes, edges: first.edges }]);
+                      setHistoryIndex(0);
+                  }
               }
           } catch (e) {
-              console.error("Failed to init cloud:", e);
+              console.warn('Failed to load projects from API, using localStorage fallback:', e);
           }
       };
-      initCloud();
-  }, [cloudRefreshTrigger]);
-
-  const handleUpdateCloudToken = (token: string) => {
-      cloudService.setToken(token);
-      setCloudRefreshTrigger(prev => prev + 1);
-      setIsControlPanelOpen(false);
-      setStatusMessage("Connecting to Cloud...");
-  };
-
-  // --- Cloud Workspace Sync ---
-  useEffect(() => {
-      const syncWorkspaceFolder = async () => {
-          if (!cloudRootId || !activeWorkspaceId) return;
-          
-          const currentWs = workspaces.find(w => w.id === activeWorkspaceId);
-          if (currentWs) return;
-
-          if (currentWs.cloudId) return;
-
-          setIsCloudSyncing(true);
-          const folder = await cloudService.createFolder(currentWs.name, cloudRootId);
-          
-          if (folder) {
-              setWorkspaces(prev => prev.map(w => 
-                  w.id === activeWorkspaceId ? { ...w, cloudId: folder.id } : w
-              ));
-          }
-          setIsCloudSyncing(false);
-      };
-      
-      syncWorkspaceFolder();
-  }, [activeWorkspaceId, cloudRootId]); 
+      loadFromAPI();
+  }, [user]);
 
   // --- Workspace Handlers ---
 
@@ -265,15 +249,33 @@ _
       return () => clearTimeout(timer);
   }, [nodes, edges, messages, activeWorkspaceId]);
 
-  // Persistence to LocalStorage (Whenever workspaces update)
+  // Persistence to LocalStorage + API (Whenever workspaces update)
   useEffect(() => {
       try {
-          localStorage.setItem('WISE_STUDIO_WORKSPACES', JSON.stringify(workspaces));
-          localStorage.setItem('WISE_STUDIO_ACTIVE_ID', activeWorkspaceId);
+          localStorage.setItem('NEST_STUDIO_WORKSPACES', JSON.stringify(workspaces));
+          localStorage.setItem('NEST_STUDIO_ACTIVE_ID', activeWorkspaceId);
       } catch (e) {
           console.error("Failed to save to localStorage:", e);
       }
   }, [workspaces, activeWorkspaceId]);
+
+  // Debounced save to Identify API
+  useEffect(() => {
+      if (!user) return;
+      const ws = workspaces.find(w => w.id === activeWorkspaceId);
+      if (!ws || !ws.cloudId) return;
+      const timer = setTimeout(async () => {
+          try {
+              await updateProject(ws.cloudId!, {
+                  name: ws.name,
+                  settings: { nodes: ws.nodes, edges: ws.edges, messages: ws.messages },
+              });
+          } catch (e) {
+              console.warn('API save failed:', e);
+          }
+      }, 5000);
+      return () => clearTimeout(timer);
+  }, [workspaces, activeWorkspaceId, user]);
 
 
   const handleSwitchWorkspace = async (id: string) => {
@@ -316,8 +318,23 @@ _
       
       saveCurrentWorkspaceState();
       
-      const newId = `ws-${Date.now()}`;
       const newName = `Canvas ${workspaces.length + 1}`;
+      let newId = `ws-${Date.now()}`;
+      let cloudId: number | undefined;
+
+      // Create in API if signed in
+      if (user) {
+          try {
+              const res = await createProject(newName, { settings: { nodes: [], edges: [], messages: [] } });
+              const project = res.project || res;
+              if (project?.id) {
+                  newId = String(project.id);
+                  cloudId = project.id;
+              }
+          } catch (e) {
+              console.warn('API project creation failed, using local:', e);
+          }
+      }
       
       const newWorkspace: Workspace = {
           id: newId,
@@ -325,7 +342,8 @@ _
           nodes: [],
           edges: [],
           messages: [],
-          lastModified: Date.now()
+          lastModified: Date.now(),
+          cloudId,
       };
 
       setWorkspaces(prev => [...prev, newWorkspace]);
@@ -351,12 +369,18 @@ _
       if (workspaces.length <= 1) return;
       
       const isDeletingActive = id === activeWorkspaceId;
+      const ws = workspaces.find(w => w.id === id);
 
       if (isDeletingActive) {
           setIsSwitchingWorkspace(true);
           setStatusState('working');
           setStatusMessage('Removing...');
           await new Promise(r => setTimeout(r, 300));
+      }
+
+      // Delete from API if signed in
+      if (user && ws?.cloudId) {
+          try { await deleteProject(ws.cloudId); } catch (e) { console.warn('API delete failed:', e); }
       }
 
       const newWorkspaces = workspaces.filter(w => w.id !== id);
@@ -384,6 +408,11 @@ _
 
   const handleRenameWorkspace = (id: string, name: string) => {
       setWorkspaces(prev => prev.map(w => w.id === id ? { ...w, name } : w));
+      // Sync rename to API
+      const ws = workspaces.find(w => w.id === id);
+      if (user && ws?.cloudId) {
+          updateProject(ws.cloudId, { name }).catch(e => console.warn('API rename failed:', e));
+      }
   };
 
 
@@ -536,14 +565,21 @@ _
         });
     }
 
-    // Cloud Upload
+    // Cloud Upload via SDK
     let cloudId: number | undefined;
-    const currentWs = workspaces.find(w => w.id === activeWorkspaceId);
-    if (currentWs?.cloudId) {
-        setStatusMessage(`Uploading ${file.name}...`);
-        const entry = await cloudService.uploadFile(file, file.name, currentWs.cloudId);
-        if (entry) {
-            cloudId = entry.id;
+    if (user) {
+        try {
+            const currentWs = workspaces.find(w => w.id === activeWorkspaceId);
+            const folderParts = currentWs
+                ? ['_collab-online', 'projects', currentWs.name, 'uploads']
+                : ['_collab-online', 'unsorted'];
+            setStatusMessage(`Uploading ${file.name}...`);
+            const folderId = await ensureFolderPath(folderParts);
+            const uploaded = await uploadToStorage(file, { parentId: folderId });
+            cloudId = uploaded?.id || uploaded?.fileEntry?.id;
+            setStatusMessage('');
+        } catch (e) {
+            console.warn('Cloud upload failed:', e);
             setStatusMessage('');
         }
     }
@@ -615,6 +651,64 @@ _
       const newEdges = edges.filter(e => e.id !== id);
       setEdges(newEdges);
       addToHistory(nodes, newEdges);
+  };
+
+  const executeUICommands = (commands: any[]) => {
+      console.log("DEBUG: executeUICommands called with:", commands);
+      if (!commands || commands.length === 0) return;
+      
+      commands.forEach(cmd => {
+          const { command, args } = cmd;
+          console.log("DEBUG: Executing UI Command:", command, args);
+          
+          const centerX = window.innerWidth / 2;
+          const centerY = window.innerHeight / 2;
+
+          switch (command) {
+              case 'create_node':
+                  const type = args.type || 'text';
+                  const newNodeId = Date.now().toString() + Math.random().toString(36).substr(2, 5);
+                  
+                  // Use functional update to avoid stale nodes length
+                  setNodes(prev => {
+                      const shift = (prev.length % 5) * 20;
+                      const maxZ = prev.length > 0 ? Math.max(...prev.map(n => n.zIndex)) : 0;
+                      
+                      const newNode: CanvasNode = {
+                          id: newNodeId,
+                          type: type as any,
+                          x: centerX - 250 + shift,
+                          y: centerY - 150 + shift,
+                          width: 500,
+                          height: 400,
+                          title: args.title || 'New Node',
+                          content: args.content || '',
+                          zIndex: maxZ + 1
+                      };
+                      return [...prev, newNode];
+                  });
+                  
+                  setActiveNodeId(newNodeId);
+                  break;
+
+              case 'update_node':
+                  if (args.id) {
+                      setNodes(prev => prev.map(n => n.id === args.id ? { ...n, ...args } : n));
+                  }
+                  break;
+
+              case 'delete_node':
+                  if (args.id) {
+                      handleNodeDelete(args.id);
+                  }
+                  break;
+
+              case 'clear':
+                  setNodes([]);
+                  setEdges([]);
+                  break;
+          }
+      });
   };
 
   // Project Management (JSON)
@@ -832,7 +926,7 @@ _
 
           setStatusState('working');
           const actionMap: Record<string, string> = {
-              [AgentId.WISE]: "Thinking...",
+              [AgentId.NEST]: "Thinking...",
               [AgentId.CODE]: "Coding...",
               [AgentId.CREATIVE]: "Writing...",
               [AgentId.IMAGE]: "Dreaming...",
@@ -846,13 +940,21 @@ _
           const shift = (nodes.length % 5) * 20;
 
           const uploadToCloud = async (blob: Blob, name: string) => {
-              const currentWs = workspaces.find(w => w.id === activeWorkspaceId);
-              if (currentWs?.cloudId) {
+              if (!user) return null;
+              try {
+                  const currentWs = workspaces.find(w => w.id === activeWorkspaceId);
+                  const folderParts = currentWs
+                      ? ['_collab-online', 'projects', currentWs.name, 'generated']
+                      : ['_collab-online', 'unsorted'];
                   setStatusMessage("Syncing to cloud...");
-                  const entry = await cloudService.uploadFile(blob, name, currentWs.cloudId);
-                  return entry;
+                  const folderId = await ensureFolderPath(folderParts);
+                  const file = new File([blob], name, { type: blob.type });
+                  const uploaded = await uploadToStorage(file, { parentId: folderId });
+                  return uploaded?.fileEntry || uploaded;
+              } catch (e) {
+                  console.warn('Cloud upload failed:', e);
+                  return null;
               }
-              return null;
           };
 
           // --- ARTIFACT GENERATION (Create or Update) ---
@@ -983,11 +1085,11 @@ _
                    );
                    
                    let blob: Blob;
-                   if (url.startsWith('blob:')) {
+                   if (url.startsWith('blob:') || url.startsWith('data:')) {
                        const resp = await fetch(url);
                        blob = await resp.blob();
                    } else {
-                       blob = cloudService.dataURLtoBlob(url);
+                       blob = new Blob([]);
                    }
 
                    const cloudEntry = await uploadToCloud(blob, `${isImage ? 'image' : 'video'}-${Date.now()}.${isImage ? 'png' : 'mp4'}`);
@@ -1002,6 +1104,10 @@ _
                           attachments: [{ type: isImage?'image':'video', url }]
                       };
                    }));
+
+                   // Execute any UI commands
+                   const cmds = AI.getLastUICommands();
+                   executeUICommands(cmds);
 
               } 
               // TEXT / CODE GENERATION
@@ -1151,21 +1257,21 @@ _
                       }));
                   }
 
-                  // Cloud Sync
-                  const currentWs = workspaces.find(w => w.id === activeWorkspaceId);
-                  if (currentWs?.cloudId) {
-                     setStatusMessage("Syncing code to cloud...");
-                     if (finalTitle) {
-                          const contentToUpload = isCode ? (fileBuffers[currentFile] || buffer) : textBuffer;
-                          const blob = new Blob([contentToUpload || "Generated Content"], { type: 'text/plain' });
-                          await uploadToCloud(blob, finalTitle);
-                     }
+                  // Cloud Sync via SDK
+                  if (user && finalTitle) {
+                     const contentToUpload = isCode ? (fileBuffers[currentFile] || buffer) : textBuffer;
+                     const blob = new Blob([contentToUpload || "Generated Content"], { type: 'text/plain' });
+                     await uploadToCloud(blob, finalTitle);
                   }
                   
                    setMessages(prev => prev.map(m => {
                       if (m.id !== toolMsgId) return m;
                       return { ...m, content: m.content + "\n\n**Complete.**" };
                   }));
+
+                  // Execute any UI commands (e.g., node organization)
+                  const cmds = AI.getLastUICommands();
+                  executeUICommands(cmds);
               }
 
           } 
@@ -1190,6 +1296,10 @@ _
                       m.id === responseMsgId ? { ...m, content: content } : m
                   ));
               }
+
+              // Execute any UI commands returned by Weaver
+              const cmds = AI.getLastUICommands();
+              executeUICommands(cmds);
           }
 
       } catch (e: any) {
@@ -1216,7 +1326,7 @@ _
       setStatusMessage('Live Session');
     } else {
       setIsLiveMode(false);
-      setActiveAgent(AgentId.WISE);
+      setActiveAgent(AgentId.NEST);
       setStatusState('idle');
       setStatusMessage('');
     }
@@ -1224,6 +1334,22 @@ _
 
   const activeWorkspaceName = workspaces.find(w => w.id === activeWorkspaceId)?.name || 'Canvas';
   const selectedNode = activeNodeId ? nodes.find(n => n.id === activeNodeId) : null;
+
+  // Auth gate
+  if (isAuthLoading) {
+    return (
+      <div className="h-full w-full flex items-center justify-center bg-bg-main">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 rounded-full border-2 border-text-muted border-t-text-primary animate-spin" />
+          <span className="text-xs text-text-muted font-mono uppercase tracking-widest animate-pulse">Initializing...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user && !isGuest) {
+    return <LoginScreen />;
+  }
 
   return (
     <div className="w-full h-full relative font-sans text-text-primary selection:bg-accent-primary selection:text-white">
@@ -1294,7 +1420,6 @@ _
                     onToggleChat={() => setShowChat(!showChat)}
                     onSave={handleSaveProject}
                     onLoad={() => fileInputRef.current?.click()}
-                    onUpdateCloudToken={handleUpdateCloudToken}
                     canUndo={historyIndex > 0}
                     canRedo={historyIndex < history.length - 1}
                     onUndo={undo}
@@ -1363,6 +1488,14 @@ _
         </ErrorBoundary>
 
     </div>
+  );
+}
+
+function App() {
+  return (
+    <ErrorBoundary name="App">
+      <AppContent />
+    </ErrorBoundary>
   );
 }
 

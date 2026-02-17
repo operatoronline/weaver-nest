@@ -18,6 +18,9 @@ export default defineConfig(({ mode }) => {
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),
+          'react': path.resolve(__dirname, 'node_modules/react'),
+          '@operator/identify/react': path.resolve(__dirname, '../identify-sdk/src/react.jsx'),
+          '@operator/identify': path.resolve(__dirname, '../identify-sdk/src/index.js'),
         }
       }
     };

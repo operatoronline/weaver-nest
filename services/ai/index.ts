@@ -1,6 +1,7 @@
 
 import { AIProvider, ImageOptions, VideoOptions } from "./types";
 import { GoogleGenAIProvider } from "./providers/googleGenAI";
+import { WeaverProvider } from "./providers/weaver";
 import { AgentId } from "../../types";
 import { AGENTS } from "../../constants";
 
@@ -13,11 +14,19 @@ class AIOrchestrator {
     private fastModel = 'gemini-2.5-flash';
 
     constructor() {
-        this.provider = new GoogleGenAIProvider();
+        // Switch to WeaverProvider to wire up the Go backend
+        this.provider = new WeaverProvider();
     }
 
     async route(prompt: string, history: any[], imageContext?: string) {
         return this.provider.routeRequest(prompt, history, { fast: this.fastModel }, imageContext);
+    }
+
+    getLastUICommands() {
+        if (this.provider.getLastUICommands) {
+            return this.provider.getLastUICommands();
+        }
+        return [];
     }
 
     /**
@@ -75,7 +84,7 @@ class AIOrchestrator {
                  4. Do NOT write conversational text before the first file marker.
                  5. Output the COMPLETE content for every file. No placeholders.
                  `;
-             } else if (agentId === AgentId.CREATIVE || agentId === AgentId.WISE) {
+             } else if (agentId === AgentId.CREATIVE || agentId === AgentId.NEST) {
                  systemInstruction += `\n\nIMPORTANT ARTIFACT INSTRUCTIONS:
                  1. You are creating or updating a live document node on a canvas.
                  2. Output the FULL CONTENT of the document.

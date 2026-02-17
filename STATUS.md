@@ -1,18 +1,18 @@
 
-# Project Status: Wise Agentic Studio
+# Project Status: Nest Agentic Studio
 
-> **Version:** 0.0.9-alpha  
-> **Last Updated:** 2025-05-21  
+> **Version:** 0.1.0  
+> **Last Updated:** 2026-02-13  
 > **Status:** Active Development  
 
 ## 1. Project Overview
-**Wise Agentic Studio** is an intelligent, multi-agent orchestration platform built on an infinite spatial canvas. It leverages Google's Gemini models to provide specialized AI capabilities (Coding, Creative Writing, Visual Design, Motion, and Real-time Voice) within a unified workspace.
+**Nest Agentic Studio** is an intelligent, multi-agent orchestration platform built on an infinite spatial canvas. It leverages Google's Gemini models to provide specialized AI capabilities (Coding, Creative Writing, Visual Design, Motion, and Real-time Voice) within a unified workspace.
 
 **Core Architecture:**
 - **Frontend:** React 19, TypeScript, Tailwind CSS, Vite
 - **AI Layer:** `@google/genai` wrapped in a custom "GenKit-lite" Orchestrator.
 - **State Management:** Local React State + Cloud Sync Service
-- **Persistence:** LocalStorage (Auto-save) + Cloud Backup
+- **Persistence:** LocalStorage (Auto-save) + Identify API Projects + Storage.onl SDK
 - **UI Paradigm:** Spatial/Infinite Canvas + Conversational Overlay
 
 ---
@@ -42,7 +42,7 @@
 
 - **Agent Orchestration**
   - [x] Multi-agent router (Intent classification)
-  - [x] specialized personas (Wise, Code, Creative, Image, Video, Pro)
+  - [x] specialized personas (Nest, Code, Creative, Image, Video, Pro)
   - [x] Streaming text response handling
   - [x] Context injection (Active Node + Connections)
 
