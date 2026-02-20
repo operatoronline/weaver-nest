@@ -571,8 +571,8 @@ _
         try {
             const currentWs = workspaces.find(w => w.id === activeWorkspaceId);
             const folderParts = currentWs
-                ? ['_collab-online', 'projects', currentWs.name, 'uploads']
-                : ['_collab-online', 'unsorted'];
+                ? ['_weaver-online', 'projects', currentWs.name, 'uploads']
+                : ['_weaver-online', 'unsorted'];
             setStatusMessage(`Uploading ${file.name}...`);
             const folderId = await ensureFolderPath(folderParts);
             const uploaded = await uploadToStorage(file, { parentId: folderId });
@@ -944,8 +944,8 @@ _
               try {
                   const currentWs = workspaces.find(w => w.id === activeWorkspaceId);
                   const folderParts = currentWs
-                      ? ['_collab-online', 'projects', currentWs.name, 'generated']
-                      : ['_collab-online', 'unsorted'];
+                      ? ['_weaver-online', 'projects', currentWs.name, 'generated']
+                      : ['_weaver-online', 'unsorted'];
                   setStatusMessage("Syncing to cloud...");
                   const folderId = await ensureFolderPath(folderParts);
                   const file = new File([blob], name, { type: blob.type });

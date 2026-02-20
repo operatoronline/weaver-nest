@@ -361,7 +361,7 @@ export class GoogleGenAIProvider implements AIProvider {
              
              DECISION PROCESS:
              1. Analyze the USER REQUEST and CONTEXT.
-             2. Select the BEST AGENT (wise, code_wise, creative_wise, image_wise, video_wise, pro_wise).
+             2. Select the BEST AGENT (weaver-nest, code_weaver-nest, creative_weaver-nest, image_weaver-nest, video_weaver-nest, pro_weaver-nest).
              3. DECIDE ARTIFACT:
                 - If user wants to CREATE something new -> operation='create'.
                 - If user refers to an existing node/artifact (e.g. "update this", "change the list", "add item") -> operation='update'.

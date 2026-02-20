@@ -4,7 +4,10 @@ import { AgentId } from "../../../types";
 
 export class WeaverProvider implements AIProvider {
     id = "weaver";
-    private apiBase = "https://weaver.onl"; // Production endpoint
+    private get apiBase() {
+        const isDev = window.location.hostname.includes('operator.onl');
+        return isDev ? "https://weaver.operator.onl" : "https://weaver.onl";
+    }
     private lastUICommands: any[] = [];
 
     constructor() {}
