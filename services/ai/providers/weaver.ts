@@ -12,8 +12,8 @@ export class WeaverProvider implements AIProvider {
 
     constructor() {}
 
-    private async callWeaver(message: string, sessionKey: string = "nest:default"): Promise<{ response: string, ui_commands?: any[] }> {
-        console.log("DEBUG: Calling Weaver API...", { message, sessionKey });
+    private async callWeaver(message: string, sessionKey: string = "nest:default", mediaConfig?: any): Promise<any> {
+        console.log("DEBUG: Calling Weaver API...", { message, sessionKey, mediaConfig });
         const response = await fetch(`${this.apiBase}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -21,7 +21,8 @@ export class WeaverProvider implements AIProvider {
                 message,
                 session_key: sessionKey,
                 channel: "nest",
-                chat_id: "ui"
+                chat_id: "ui",
+                media_config: mediaConfig
             })
         });
 
@@ -61,12 +62,21 @@ export class WeaverProvider implements AIProvider {
     }
 
     async generateImage(prompt: string, options?: ImageOptions): Promise<string> {
-        // Fallback to Weaver's image tools if available, or throw
-        throw new Error("Image generation via Weaver REST API not yet implemented");
+        const response = await this.callWeaver(prompt, "nest:images", {
+            type: 'image',
+            aspect_ratio: options?.aspectRatio || '1:1',
+            size: options?.size || '1K'
+        });
+        return response.attachment_url || response.response;
     }
 
     async generateVideo(prompt: string, options?: VideoOptions, imageInputBase64?: string): Promise<string> {
-        throw new Error("Video generation via Weaver REST API not yet implemented");
+        const response = await this.callWeaver(prompt, "nest:videos", {
+            type: 'video',
+            aspect_ratio: options?.aspectRatio || '16:9',
+            resolution: options?.resolution || '720p'
+        });
+        return response.attachment_url || response.response;
     }
 
     async routeRequest(prompt: string, history: any[], models: { fast: string }, imageContext?: string): Promise<RouterResult> {

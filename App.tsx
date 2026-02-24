@@ -17,6 +17,24 @@ import { ensureFolderPath, uploadToStorage, listProjects, createProject, updateP
 
 function AppContent() {
   const { user, isGuest, isLoading: isAuthLoading } = useAuth();
+
+  // If loading, show initial state
+  if (isAuthLoading) {
+    return (
+      <div className="h-screen w-screen bg-bg-main flex items-center justify-center text-text-secondary">
+        <div className="flex flex-col items-center gap-4">
+             <div className="w-8 h-8 rounded-full border-2 border-border-default border-t-accent-primary animate-spin" />
+             <div className="font-mono uppercase tracking-widest text-xs animate-pulse">Initializing Agentic Studio...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // If not authenticated and not a guest, show login
+  if (!user && !isGuest) {
+    return <LoginScreen />;
+  }
+
   // --- Workspace State (Persistence) ---
   const [workspaces, setWorkspaces] = useState<Workspace[]>(() => {
       // 1. Try to load from LocalStorage

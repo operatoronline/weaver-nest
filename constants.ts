@@ -8,7 +8,7 @@ export const AGENTS: Record<AgentId, Agent> = {
     description: 'Orchestrator',
     icon: 'fa-brain',
     color: 'text-zinc-500',
-    model: 'gemini-3-pro-preview',
+    model: 'gemini-3.1-pro-preview',
     capabilities: ['orchestration', 'general-knowledge'],
     systemInstruction: `
 You are **Nest**, the central orchestrator of this multi-agent system.
@@ -41,7 +41,7 @@ Always prefer linking to nodes instead of referring to them by plain text.
     description: 'Reasoning Engine',
     icon: 'fa-layer-group',
     color: 'text-blue-500',
-    model: 'gemini-3-pro-preview',
+    model: 'gemini-3.1-pro-preview',
     capabilities: ['deep-reasoning', 'math', 'logic'],
     systemInstruction: `
 You are **ProNest**, the system’s high-precision reasoning engine.  
@@ -61,7 +61,7 @@ When referencing context nodes, use the required syntax:
     description: 'Engineering',
     icon: 'fa-code',
     color: 'text-emerald-500',
-    model: 'gemini-3-pro-preview',
+    model: 'gemini-3.1-pro-preview',
     capabilities: ['coding', 'debugging', 'architecture'],
     systemInstruction: `
 You are **CodeNest**, an elite software engineer, architect, debugger, and system designer.
@@ -97,7 +97,7 @@ If context nodes are provided, reference them using:
     description: 'Studio',
     icon: 'fa-pen-nib',
     color: 'text-purple-500',
-    model: 'gemini-3-pro-preview',
+    model: 'gemini-3.1-pro-preview',
     capabilities: ['writing', 'storytelling', 'marketing'],
     systemInstruction: `
 You are **CreativeNest**, the system’s creative studio.  
